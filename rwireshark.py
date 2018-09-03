@@ -4,6 +4,7 @@
 import argparse
 import subprocess
 import shlex
+import os
 
 
 def spawn_tcpdump_ssh(user, host, port, interface):
@@ -60,6 +61,12 @@ def main():
     # errors and messages.
     wireshark = spawn_wireshark(stdin=tcpdump.stdout,
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    # Wait for any child process (tcp or wireshark) to terminate
+    # NOTE: different behaviour on Windows, pid<=0 causes an exception
+    pid, status = os.waitpid(-1, 0)
+
+    return 0
 
 
 if __name__ == "__main__":
