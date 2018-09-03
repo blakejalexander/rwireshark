@@ -28,6 +28,14 @@ def spawn_tcpdump_ssh(user, host, port, interface):
         stdin=None, stdout=subprocess.PIPE, stderr=None)
 
 
+def spawn_wireshark(stdin=None, stdout=None, stderr=None):
+
+    wireshark_cmd = "wireshark -k -i -"
+
+    return subprocess.Popen(shlex.split(wireshark_cmd), stdin=stdin,
+        stdout=stdout, stderr=stderr)
+
+
 def main():
 
     parser = argparse.ArgumentParser(prog="rwireshark")
@@ -46,6 +54,12 @@ def main():
     # spawn an ssh process, connects to target, executes tcpdump and creates
     # a pipe on stdout for usage by this program.
     tcpdump = spawn_tcpdump_ssh(user, host, args.port, args.interface)
+
+    # spawn wireshark process, capturing immediately from stdin, route
+    # stdout, stderr to /dev/null to avoid polluting terminal with GUI related
+    # errors and messages.
+    wireshark = spawn_wireshark(stdin=tcpdump.stdout,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
 if __name__ == "__main__":
