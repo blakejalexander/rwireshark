@@ -2,6 +2,30 @@
 
 
 import argparse
+import subprocess
+import shlex
+
+
+def spawn_tcpdump_ssh(user, host, port, interface):
+
+    if user is None or user == '':
+        ssh_cmd = "ssh %s" % host
+    else:
+        ssh_cmd = "ssh %s@%s" % (user, host)
+
+    # If a non-default ssh port has been given, specify it on the command line
+    if port != 22:
+        ssh_cmd = "%s -p %d" % (ssh_cmd, port)
+
+    # Filter ssh traffic at the capture level to avoid accidentally
+    # amplification-attacking ourselves
+    tcpdump_cmd = "tcpdump --snapshot-length=0 --packet-buffered -w - " \
+        "'not tcp port %d' --interface=%s" % (port, interface)
+
+    cmd = "%s %s" % (ssh_cmd, tcpdump_cmd)
+
+    return subprocess.Popen(shlex.split(cmd),
+        stdin=None, stdout=subprocess.PIPE, stderr=None)
 
 
 def main():
@@ -18,6 +42,10 @@ def main():
 
     if sep == '':
         host, user = user, ''
+
+    # spawn an ssh process, connects to target, executes tcpdump and creates
+    # a pipe on stdout for usage by this program.
+    tcpdump = spawn_tcpdump_ssh(user, host, args.port, args.interface)
 
 
 if __name__ == "__main__":
