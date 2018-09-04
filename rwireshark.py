@@ -18,10 +18,15 @@ def spawn_tcpdump_ssh(user, host, port, interface):
     if port != 22:
         ssh_cmd = "%s -p %d" % (ssh_cmd, port)
 
+    if interface is not None and interface != '':
+        interface_opt = '--interface=%s' % interface
+    else:
+        interface_opt = ''
+
     # Filter ssh traffic at the capture level to avoid accidentally
     # amplification-attacking ourselves
     tcpdump_cmd = "tcpdump --snapshot-length=0 --packet-buffered -w - " \
-        "'not tcp port %d' --interface=%s" % (port, interface)
+        "'not tcp port %d' %s" % (port, interface_opt)
 
     cmd = "%s %s" % (ssh_cmd, tcpdump_cmd)
 
@@ -43,7 +48,7 @@ def main():
 
     parser.add_argument("host", type=str)
     parser.add_argument("-p", "--port", default=22, type=int)
-    parser.add_argument("-i", "--interface", default="eth0")
+    parser.add_argument("-i", "--interface", default=None)
 
     args = parser.parse_args()
 
