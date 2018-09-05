@@ -25,7 +25,7 @@ def spawn_tcpdump_ssh(user, host, port, interface):
 
     # Filter ssh traffic at the capture level to avoid accidentally
     # amplification-attacking ourselves
-    tcpdump_cmd = "tcpdump --snapshot-length=0 --packet-buffered -w - " \
+    tcpdump_cmd = "tcpdump -s0 --packet-buffered -w - " \
         "'not tcp port %d' %s" % (port, interface_opt)
 
     cmd = "%s %s" % (ssh_cmd, tcpdump_cmd)
